@@ -1,8 +1,8 @@
 site_name: normativa
 site_url: https://normativa.dev
 site_description: Legislacion espanola consolidada con dominios tematicos
-repo_url: https://github.com/ioseobcn/normativa
-repo_name: ioseobcn/normativa
+repo_url: https://github.com/ioseobcn/normativa-dev
+repo_name: ioseobcn/normativa-dev
 
 theme:
   name: material
@@ -36,6 +36,14 @@ nav:
   - API:
     - Tools MCP: api/tools.md
     - API del BOE: api/boe-api.md
+  - Desarrollo:
+    - Vision general: dev/index.md
+    - Arquitectura: dev/architecture.md
+    - API del BOE (internals): dev/boe-api-internals.md
+    - Crear dominios: dev/domain-authoring.md
+    - Testing: dev/testing.md
+    - Agentes y skills: dev/agents-and-skills.md
+    - Integracion EU: dev/eu-integration.md
   - Contribuir: contributing.md
   - Changelog: changelog.md
 

@@ -67,4 +67,4 @@ Este software tiene caracter informativo y **no constituye asesoramiento legal**
 
 ## Licencia
 
-[MIT](https://github.com/ioseobcn/normativa/blob/main/LICENSE) -- InnovaOrigen 2026
+[MIT](https://github.com/ioseobcn/normativa-dev/blob/main/LICENSE) -- InnovaOrigen 2026

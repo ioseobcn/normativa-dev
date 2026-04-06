@@ -3,7 +3,7 @@
 ## Setup de desarrollo
 
 ```bash
-git clone https://github.com/ioseobcn/normativa.git
+git clone https://github.com/ioseobcn/normativa-dev.git
 cd normativa
 uv sync
 ```

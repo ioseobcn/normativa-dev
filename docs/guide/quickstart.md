@@ -17,7 +17,7 @@ pip install normativa
 ### Desde el codigo fuente
 
 ```bash
-git clone https://github.com/ioseobcn/normativa.git
+git clone https://github.com/ioseobcn/normativa-dev.git
 cd normativa
 uv sync
 uv run normativa --help

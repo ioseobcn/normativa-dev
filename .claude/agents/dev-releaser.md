@@ -7,7 +7,7 @@ Prepara y publica nuevas versiones de normativa.
 - Package manager: uv
 - Build system: hatchling
 - Registry: PyPI
-- Repo: github.com/ioseobcn/normativa
+- Repo: github.com/ioseobcn/normativa-dev
 
 ## Pipeline de release
 

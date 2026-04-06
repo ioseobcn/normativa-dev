@@ -32,8 +32,8 @@ normativa = "normativa.cli:main"
 [project.urls]
 Homepage = "https://normativa.dev"
 Documentation = "https://normativa.dev/docs"
-Repository = "https://github.com/ioseobcn/normativa"
-Issues = "https://github.com/ioseobcn/normativa/issues"
+Repository = "https://github.com/ioseobcn/normativa-dev"
+Issues = "https://github.com/ioseobcn/normativa-dev/issues"
 
 [build-system]
 requires = ["hatchling"]

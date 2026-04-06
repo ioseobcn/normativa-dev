@@ -1,25 +1,26 @@
-# normativa
+# normativa-dev
 
-**Legislacion espanola consolidada con dominios tematicos — MCP Server + CLI**
+**Legislación española consolidada con dominios temáticos — MCP Server + CLI**
 
 [![PyPI](https://img.shields.io/pypi/v/normativa)](https://pypi.org/project/normativa/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 
-Accede a la legislacion espanola a traves del [BOE](https://www.boe.es/) (Boletin Oficial del Estado) usando herramientas MCP optimizadas para LLMs o una CLI directa.
+Accede a la legislación española a través del [BOE](https://www.boe.es/) (Boletín Oficial del Estado) usando herramientas MCP optimizadas para LLMs o una CLI directa.
 
 **Web:** [normativa.dev](https://normativa.dev)
 
-## Por que normativa
+## Por qué normativa
 
-Los proyectos existentes son wrappers crudos de la API del BOE. `normativa` anade una **capa de inteligencia tematica** que:
+Los proyectos existentes son wrappers crudos de la API del BOE. `normativa` añade una **capa de inteligencia temática** que:
 
-- **Segmenta por dominios legales** — fiscal, laboral, mercantil, autonomos, proteccion de datos, digital, vivienda
-- **Pre-mapea leyes clave** con articulos importantes y sus IDs de bloque
-- **Optimiza el contexto** — nunca carga leyes completas; extrae articulos individuales bajo demanda
-- **Incluye un equipo de 6 agentes** especializados con pipeline de investigacion legal
+- **Segmenta por dominios legales** — fiscal, laboral, mercantil, autónomos, protección de datos, digital, vivienda
+- **Pre-mapea leyes clave** con artículos importantes y sus IDs de bloque
+- **Optimiza el contexto** — nunca carga leyes completas; extrae artículos individuales bajo demanda
+- **Incluye un equipo de 6 agentes** especializados con pipeline de investigación legal
+- **Integra normativa europea** — referencias cruzadas con directivas y reglamentos EU (CELEX/ELI)
 
-## Instalacion
+## Instalación
 
 ```bash
 # Con uv (recomendado)
@@ -31,7 +32,7 @@ pip install normativa
 
 ## Uso como MCP Server
 
-Anade a tu configuracion de Claude Code (`.mcp.json`):
+Añade a tu configuración de Claude Code (`.mcp.json`):
 
 ```json
 {
@@ -46,33 +47,33 @@ Anade a tu configuracion de Claude Code (`.mcp.json`):
 
 Esto te da acceso a 11 herramientas:
 
-| Herramienta | Descripcion |
+| Herramienta | Descripción |
 |-------------|-------------|
-| `buscar_por_dominio` | Busca legislacion por dominio tematico (fiscal, laboral...) |
-| `buscar_legislacion` | Busqueda texto libre en legislacion consolidada |
-| `obtener_metadatos` | Metadatos de una norma (titulo, fecha, estado) |
+| `buscar_por_dominio` | Busca legislación por dominio temático (fiscal, laboral...) |
+| `buscar_legislacion` | Búsqueda texto libre en legislación consolidada |
+| `obtener_metadatos` | Metadatos de una norma (título, fecha, estado) |
 | `obtener_analisis` | Materias y referencias normativas |
-| `leer_indice` | Indice de articulos de una ley |
-| `leer_articulo` | Texto de UN articulo en markdown |
-| `leer_articulos_rango` | Hasta 10 articulos consecutivos |
+| `leer_indice` | Índice de artículos de una ley |
+| `leer_articulo` | Texto de UN artículo en markdown |
+| `leer_articulos_rango` | Hasta 10 artículos consecutivos |
 | `sumario_boe` | Sumario diario del BOE, filtrable por dominio |
 | `sumario_borme` | Sumario diario del BORME |
-| `listar_dominios` | Lista dominios tematicos disponibles |
+| `listar_dominios` | Lista dominios temáticos disponibles |
 | `datos_auxiliares` | Datos de referencia (materias, departamentos, rangos) |
 
 ## Uso como CLI
 
 ```bash
-# Buscar legislacion por dominio
+# Buscar legislación por dominio
 normativa buscar "impuesto sociedades" --dominio fiscal
 
 # Ver leyes de un dominio
 normativa dominio fiscal
 
-# Leer un articulo especifico
+# Leer un artículo específico
 normativa articulo BOE-A-2014-12328 a29
 
-# Ver indice de una ley
+# Ver índice de una ley
 normativa indice BOE-A-2014-12328
 
 # Sumario del BOE de hoy
@@ -82,21 +83,21 @@ normativa sumario
 normativa serve
 ```
 
-## Dominios tematicos
+## Dominios temáticos
 
-| Dominio | Leyes clave | Subtemas |
-|---------|-------------|----------|
-| `fiscal` | LIS, LIRPF, LIVA, LGT | IRPF, IVA, Impuesto Sociedades, General Tributaria |
-| `laboral` | ET, LGSS, LPRL | Contratos, despido, Seguridad Social, prevencion |
-| `mercantil` | LSC, CCom | Sociedades limitadas, anonimas, registro mercantil |
-| `autonomos` | LETA, LGSS-RETA | Alta, cotizacion, fiscalidad, facturacion |
-| `proteccion_datos` | LOPDGDD | Derechos afectado, obligaciones empresa, derechos digitales |
-| `digital` | LSSI | Comercio electronico, cookies, aviso legal |
-| `vivienda` | Ley Vivienda, LAU | Alquiler, zonas tensionadas, desahucio |
+| Dominio | Leyes clave | Subtemas | EU refs |
+|---------|-------------|----------|---------|
+| `fiscal` | LIS, LIRPF, LIVA, LGT | IRPF, IVA, Impuesto Sociedades, General Tributaria | Directiva IVA, ATAD |
+| `laboral` | ET, LGSS, LPRL | Contratos, despido, Seguridad Social, prevención | — |
+| `mercantil` | LSC, CCom | Sociedades limitadas, anónimas, registro mercantil | — |
+| `autonomos` | LETA, LGSS-RETA | Alta, cotización, fiscalidad, facturación | — |
+| `proteccion_datos` | LOPDGDD | Derechos afectado, obligaciones empresa, derechos digitales | RGPD |
+| `digital` | LSSI | Comercio electrónico, cookies, aviso legal | Dir. eCommerce, ePrivacy |
+| `vivienda` | Ley Vivienda, LAU | Alquiler, zonas tensionadas, desahucio | — |
 
 ## Equipo de agentes
 
-`normativa` incluye 6 agentes especializados para Claude Code que trabajan en pipeline:
+`normativa` incluye 11 agentes para Claude Code (6 legales + 5 desarrollo):
 
 ```
 Fase 1 (paralelo):  investigador-legal + monitor-cambios
@@ -105,33 +106,53 @@ Fase 3 (paralelo):  analista-dominio + verificador-cumplimiento
 Fase 4:             redactor-informes
 ```
 
-Los agentes se comunican via archivos en `handoff/`, pasando **referencias** (BOE IDs + bloque IDs) en lugar de texto completo. Esto mantiene el consumo de tokens ~12x mas eficiente que cargar leyes enteras.
+Los agentes se comunican vía archivos en `handoff/`, pasando **referencias** (BOE IDs + bloque IDs) en lugar de texto completo. Esto mantiene el consumo de tokens ~12x más eficiente que cargar leyes enteras.
 
 ## Arquitectura
 
 ```
-+---------------------------------------------------+
-|  CAPA 4: Agent Team (6 agentes .claude/agents/)   |
-|  investigador > extractor > analista > redactor    |
-+---------------------------------------------------+
-|  CAPA 3: Skills (8 packs .claude/skills/)          |
-|  Conocimiento de dominio lazy-loaded               |
-+---------------------------------------------------+
-|  CAPA 2: MCP Server (11 tools FastMCP)             |
-|  Domain Registry + Cache SQLite + XML Parser       |
-+---------------------------------------------------+
-|  CAPA 1: BOE API Client (httpx async)              |
-|  /legislacion-consolidada + /sumario + /auxiliar   |
-+---------------------------------------------------+
+┌───────────────────────────────────────────────────┐
+│  CAPA 4: Agent Team (11 agentes .claude/agents/)  │
+│  investigador → extractor → analista → redactor   │
+├───────────────────────────────────────────────────┤
+│  CAPA 3: Skills (10 packs .claude/skills/)        │
+│  Conocimiento de dominio lazy-loaded              │
+├───────────────────────────────────────────────────┤
+│  CAPA 2: MCP Server (11 tools FastMCP)            │
+│  Domain Registry + Caché SQLite + XML Parser      │
+├───────────────────────────────────────────────────┤
+│  CAPA 1: BOE API Client (httpx async)             │
+│  /legislacion-consolidada + /sumario + /auxiliar  │
+└───────────────────────────────────────────────────┘
 ```
+
+## Desarrollo
+
+```bash
+# Clonar y configurar
+git clone https://github.com/ioseobcn/normativa-dev.git
+cd normativa-dev
+uv sync
+
+# Tests
+uv run pytest -v
+
+# Documentación local
+uv run mkdocs serve
+
+# CLI
+uv run normativa buscar "despido" --dominio laboral
+```
+
+Consulta la [guía de contribución](docs/contributing.md) y la [documentación de desarrollo](docs/dev/index.md) para más detalles.
 
 ## Fuente de datos
 
-Toda la legislacion proviene de la [API de datos abiertos del BOE](https://www.boe.es/datosabiertos/) (Agencia Estatal Boletin Oficial del Estado). Los datos son publicos y de dominio publico.
+Toda la legislación proviene de la [API de datos abiertos del BOE](https://www.boe.es/datosabiertos/) (Agencia Estatal Boletín Oficial del Estado). Los datos son públicos y de dominio público.
 
 ## Aviso legal
 
-Este software tiene caracter informativo y **no constituye asesoramiento legal**. Consulte con un profesional antes de tomar decisiones basadas en los resultados obtenidos.
+Este software tiene carácter informativo y **no constituye asesoramiento legal**. Consulte con un profesional antes de tomar decisiones basadas en los resultados obtenidos.
 
 ## Licencia
 
