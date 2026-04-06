@@ -1,0 +1,48 @@
+site_name: normativa
+site_url: https://normativa.dev
+site_description: Legislacion espanola consolidada con dominios tematicos
+repo_url: https://github.com/ioseobcn/normativa
+repo_name: ioseobcn/normativa
+
+theme:
+  name: material
+  language: es
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: amber
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - search.suggest
+    - content.code.copy
+
+nav:
+  - Inicio: index.md
+  - Guia:
+    - Inicio rapido: guide/quickstart.md
+    - CLI: guide/cli.md
+    - MCP Server: guide/mcp.md
+    - Agentes legales: guide/agents.md
+  - Dominios:
+    - Vision general: domains/index.md
+    - Fiscal: domains/fiscal.md
+    - Laboral: domains/laboral.md
+    - Mercantil: domains/mercantil.md
+    - Autonomos: domains/autonomos.md
+    - Proteccion de datos: domains/proteccion-datos.md
+    - Digital: domains/digital.md
+    - Vivienda: domains/vivienda.md
+  - API:
+    - Tools MCP: api/tools.md
+    - API del BOE: api/boe-api.md
+  - Contribuir: contributing.md
+  - Changelog: changelog.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - tables
+  - attr_list

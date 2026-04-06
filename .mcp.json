@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "normativa": {
+      "command": "uv",
+      "args": ["run", "python", "-m", "normativa"],
+      "env": {}
+    }
+  }
+}
