@@ -23,6 +23,7 @@ nav:
     - Inicio rapido: guide/quickstart.md
     - CLI: guide/cli.md
     - MCP Server: guide/mcp.md
+    - API HTTP REST: guide/http-api.md
     - Agentes legales: guide/agents.md
   - Dominios:
     - Vision general: domains/index.md
@@ -39,6 +40,7 @@ nav:
   - Desarrollo:
     - Vision general: dev/index.md
     - Arquitectura: dev/architecture.md
+    - Transporte HTTP: dev/http-transport.md
     - API del BOE (internals): dev/boe-api-internals.md
     - Crear dominios: dev/domain-authoring.md
     - Testing: dev/testing.md

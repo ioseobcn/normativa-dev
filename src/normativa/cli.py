@@ -162,11 +162,41 @@ def sumario(fecha: str, dominio: str, seccion: str, as_json: bool) -> None:
 
 
 @main.command()
-def serve() -> None:
-    """Inicia el servidor MCP (stdio)."""
-    from normativa.server import mcp
-
-    mcp.run()
+@click.option(
+    "--mode",
+    type=click.Choice(["mcp", "http"]),
+    default="mcp",
+    help="Modo de transporte: mcp (stdio, default) o http (REST API).",
+)
+@click.option(
+    "--port",
+    default=8787,
+    type=int,
+    help="Puerto para el servidor HTTP (default 8787).",
+)
+@click.option(
+    "--host",
+    default="0.0.0.0",
+    help="Host para el servidor HTTP (default 0.0.0.0).",
+)
+def serve(mode: str, port: int, host: str) -> None:
+    """Inicia el servidor MCP (stdio) o HTTP (REST API)."""
+    if mode == "http":
+        try:
+            import uvicorn
+        except ImportError:
+            click.echo(
+                "Error: uvicorn no instalado. Instala con: pip install 'normativa[http]'",
+                err=True,
+            )
+            sys.exit(1)
+        click.echo(f"Iniciando API HTTP en http://{host}:{port}")
+        click.echo(f"Documentacion: http://{host}:{port}/docs")
+        click.echo(f"OpenAPI spec:  http://{host}:{port}/api/openapi.json")
+        uvicorn.run("normativa.api:app", host=host, port=port, log_level="info")
+    else:
+        from normativa.server import mcp
+        mcp.run()
 
 
 if __name__ == "__main__":

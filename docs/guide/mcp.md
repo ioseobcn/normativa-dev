@@ -1,8 +1,8 @@
 # MCP Server
 
-`normativa` expone 11 herramientas via el protocolo MCP (Model Context Protocol) usando FastMCP.
+`normativa` expone 11 herramientas via el protocolo MCP (Model Context Protocol) usando FastMCP. Compatible con Claude Code, Cursor, VS Code, Windsurf, OpenCode y cualquier cliente MCP.
 
-## Configuracion
+## Configuracion por plataforma
 
 ### Claude Code
 
@@ -19,9 +19,11 @@ Crea `.mcp.json` en la raiz de tu proyecto:
 }
 ```
 
+Reinicia Claude Code para que detecte el servidor.
+
 ### Cursor
 
-En `Settings > MCP Servers`, anade:
+En `Settings > MCP Servers`, anade un nuevo servidor con esta configuracion:
 
 ```json
 {
@@ -32,9 +34,11 @@ En `Settings > MCP Servers`, anade:
 }
 ```
 
-### VS Code (Copilot)
+Tambien puedes editar directamente el archivo de configuracion de Cursor si lo prefieres.
 
-En `.vscode/mcp.json`:
+### VS Code + Continue
+
+Crea `.vscode/mcp.json` en la raiz de tu proyecto:
 
 ```json
 {
@@ -47,9 +51,56 @@ En `.vscode/mcp.json`:
 }
 ```
 
+Continue detectara las herramientas automaticamente.
+
+### VS Code + Copilot
+
+Misma configuracion que Continue. Crea `.vscode/mcp.json`:
+
+```json
+{
+  "servers": {
+    "normativa": {
+      "command": "uvx",
+      "args": ["normativa"]
+    }
+  }
+}
+```
+
+### Windsurf
+
+Crea `.windsurf/mcp.json` en la raiz de tu proyecto:
+
+```json
+{
+  "mcpServers": {
+    "normativa": {
+      "command": "uvx",
+      "args": ["normativa"]
+    }
+  }
+}
+```
+
+### OpenCode
+
+Crea `.opencode/mcp.json` en la raiz de tu proyecto:
+
+```json
+{
+  "mcpServers": {
+    "normativa": {
+      "command": "uvx",
+      "args": ["normativa"]
+    }
+  }
+}
+```
+
 ### Instalacion local (sin uvx)
 
-Si prefieres no usar `uvx`:
+Si prefieres no usar `uvx`, instala normativa y usa `python -m`:
 
 ```json
 {
@@ -63,6 +114,8 @@ Si prefieres no usar `uvx`:
 ```
 
 Asegurate de que `normativa` esta instalado en el entorno Python que usa el `command`.
+
+---
 
 ## Herramientas disponibles
 
@@ -80,6 +133,8 @@ Asegurate de que `normativa` esta instalado en el entorno Python que usa el `com
 | `listar_dominios` | Lista dominios tematicos disponibles |
 | `datos_auxiliares` | Datos de referencia (materias, departamentos, rangos) |
 
+---
+
 ## Ejemplo de conversacion
 
 **Usuario:** Necesito saber el tipo de gravamen del Impuesto de Sociedades.
@@ -90,6 +145,8 @@ Asegurate de que `normativa` esta instalado en el entorno Python que usa el `com
 2. `leer_articulo("BOE-A-2014-12328", "a29")` -- lee el texto del articulo 29
 
 **Resultado:** El tipo general es del 25% (art. 29.1 LIS), con tipos reducidos para entidades de nueva creacion (15%), entidades sin animo de lucro, cooperativas, etc.
+
+---
 
 ## Patron de uso eficiente
 
@@ -102,3 +159,15 @@ El diseno de `normativa` optimiza el consumo de contexto:
 
 !!! warning "Limite de la API del BOE"
     La busqueda por texto (`buscar_legislacion`) esta limitada a 500 resultados por la API. Para busquedas mas especificas, usa `buscar_por_dominio` que pre-filtra con terminos optimizados.
+
+---
+
+## Transporte alternativo: API HTTP
+
+Si tu plataforma no soporta MCP pero si HTTP (como ChatGPT Actions o Codex), usa el [transporte HTTP](http-api.md):
+
+```bash
+normativa serve --mode http --port 8787
+```
+
+Esto expone los mismos 11 endpoints como API REST con especificacion OpenAPI automatica.
