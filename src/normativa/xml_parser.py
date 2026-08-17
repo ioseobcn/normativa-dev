@@ -130,7 +130,24 @@ def parse_indice(data: dict) -> list[dict[str, str]]:
 
     if isinstance(items, dict):
         # Some responses nest further
-        items = items.get("items", items.get("contenido", [items]))
+        items = items.get("bloque", items.get("items", items.get("contenido", [items])))
+
+    # Real API shape: data is [{"bloque": [{id, titulo, ...}, ...]}] —
+    # flatten the "bloque" wrappers into a single list.
+    if (
+        isinstance(items, list)
+        and items
+        and isinstance(items[0], dict)
+        and "bloque" in items[0]
+    ):
+        flat: list[Any] = []
+        for wrapper in items:
+            bloques = wrapper.get("bloque", [])
+            if isinstance(bloques, list):
+                flat.extend(bloques)
+            elif isinstance(bloques, dict):
+                flat.append(bloques)
+        items = flat
 
     result: list[dict[str, str]] = []
     for item in items:

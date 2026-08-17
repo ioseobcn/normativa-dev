@@ -117,11 +117,14 @@ def sample_metadatos_json() -> dict:
 
 @pytest.fixture()
 def sample_indice_json() -> dict:
-    """Real JSON shape from GET /legislacion-consolidada/id/{id}/texto/indice."""
+    """Real JSON shape from GET /legislacion-consolidada/id/{id}/texto/indice.
+
+    The API wraps the block list as data: [{"bloque": [...]}].
+    """
     return {
-        "status": "OK",
-        "data": {
-            "items": [
+        "status": {"code": "200", "text": "ok"},
+        "data": [{
+            "bloque": [
                 {
                     "id": "tpreliminar",
                     "titulo": "Titulo Preliminar. Naturaleza y ambito de aplicacion",
@@ -153,7 +156,7 @@ def sample_indice_json() -> dict:
                     "fecha_actualizacion": "20240101",
                 },
             ],
-        },
+        }],
     }
 
 
@@ -168,27 +171,31 @@ def mock_boe_client(sample_metadatos_json, sample_indice_json, sample_bloque_xml
     client = AsyncMock()
     client.legislacion_metadatos.return_value = sample_metadatos_json
     client.legislacion_analisis.return_value = {
-        "status": "OK",
-        "data": {
-            "materias": ["Impuestos", "Impuesto sobre Sociedades"],
-            "notas": "Texto consolidado vigente.",
-            "afecta_a": [
-                {
-                    "identificador": "BOE-A-2004-4456",
-                    "titulo": "Real Decreto Legislativo 4/2004",
-                    "tipo": "Deroga",
-                }
+        "status": {"code": "200", "text": "ok"},
+        "data": [{
+            "materias": [
+                {"materia": {"codigo": "4557", "texto": "Impuestos"}},
+                {"materia": {"codigo": "4560", "texto": "Impuesto sobre Sociedades"}},
             ],
-            "afectada_por": [
-                {
-                    "identificador": "BOE-A-2022-23042",
-                    "titulo": "Ley 28/2022",
-                    "tipo": "Modifica",
-                }
-            ],
-        },
+            "referencias": {
+                "anteriores": [{
+                    "anterior": [{
+                        "id_norma": "BOE-A-2004-4456",
+                        "relacion": {"codigo": "210", "texto": "DEROGA"},
+                        "texto": "el Real Decreto Legislativo 4/2004",
+                    }],
+                }],
+                "posteriores": [{
+                    "posterior": [{
+                        "id_norma": "BOE-A-2022-23042",
+                        "relacion": {"codigo": "403", "texto": "MODIFICA"},
+                        "texto": "el art. 29, por Ley 28/2022",
+                    }],
+                }],
+            },
+        }],
     }
-    client.legislacion_indice.return_value = sample_indice_json["data"]["items"]
+    client.legislacion_indice.return_value = sample_indice_json["data"]
     client.legislacion_bloque.return_value = sample_bloque_xml
     client.legislacion_lista.return_value = {
         "status": "OK",

@@ -91,17 +91,29 @@ class TestObtenerAnalisis:
     async def test_valid_response_includes_materias(self):
         """Valid response should include materias from analysis."""
         analisis_response = {
-            "status": "OK",
-            "data": {
-                "materias": ["Impuestos", "Impuesto sobre Sociedades"],
-                "notas": "Texto consolidado.",
-                "afecta_a": [
-                    {"identificador": "BOE-A-2004-4456", "titulo": "RDLeg 4/2004", "tipo": "Deroga"}
+            "status": {"code": "200", "text": "ok"},
+            "data": [{
+                "materias": [
+                    {"materia": {"codigo": "4557", "texto": "Impuestos"}},
+                    {"materia": {"codigo": "4560", "texto": "Impuesto sobre Sociedades"}},
                 ],
-                "afectada_por": [
-                    {"identificador": "BOE-A-2022-23042", "titulo": "Ley 28/2022", "tipo": "Modifica"}
-                ],
-            },
+                "referencias": {
+                    "anteriores": [{
+                        "anterior": [{
+                            "id_norma": "BOE-A-2004-4456",
+                            "relacion": {"codigo": "210", "texto": "DEROGA"},
+                            "texto": "el Real Decreto Legislativo 4/2004",
+                        }],
+                    }],
+                    "posteriores": [{
+                        "posterior": [{
+                            "id_norma": "BOE-A-2022-23042",
+                            "relacion": {"codigo": "403", "texto": "MODIFICA"},
+                            "texto": "el art. 29, por Ley 28/2022",
+                        }],
+                    }],
+                },
+            }],
         }
 
         with patch("normativa.tools.metadata.get_client", new_callable=AsyncMock) as mock_gc, \
@@ -122,19 +134,26 @@ class TestObtenerAnalisis:
         assert "error" not in result
         assert result["boe_id"] == "BOE-A-2014-12328"
         assert "materias" in result
-        assert "Impuestos" in result["materias"]
-        assert "afecta_a" in result
-        assert "afectada_por" in result
+        assert {"codigo": "4557", "texto": "Impuestos"} in result["materias"]
+        assert result["afecta_a"] == [{
+            "id_norma": "BOE-A-2004-4456",
+            "relacion": "DEROGA",
+            "texto": "el Real Decreto Legislativo 4/2004",
+        }]
+        assert result["afectada_por"][0]["relacion"] == "MODIFICA"
 
     async def test_max_referencias_truncation(self):
         """References should be truncated to max_referencias."""
-        many_refs = [{"identificador": f"BOE-A-{i}", "titulo": f"Ley {i}"} for i in range(30)]
+        many_refs = [
+            {"id_norma": f"BOE-A-{i}", "relacion": {"codigo": "403", "texto": "MODIFICA"}, "texto": f"Ley {i}"}
+            for i in range(30)
+        ]
         analisis_response = {
-            "status": "OK",
-            "data": {
-                "materias": ["Test"],
-                "afecta_a": many_refs,
-            },
+            "status": {"code": "200", "text": "ok"},
+            "data": [{
+                "materias": [{"materia": {"codigo": "1", "texto": "Test"}}],
+                "referencias": {"anteriores": [{"anterior": many_refs}]},
+            }],
         }
 
         with patch("normativa.tools.metadata.get_client", new_callable=AsyncMock) as mock_gc, \
@@ -161,11 +180,15 @@ class TestObtenerAnalisis:
     async def test_without_referencias(self):
         """When incluir_referencias=False, no refs in output."""
         analisis_response = {
-            "status": "OK",
-            "data": {
-                "materias": ["Test"],
-                "afecta_a": [{"identificador": "BOE-A-0001", "titulo": "Test"}],
-            },
+            "status": {"code": "200", "text": "ok"},
+            "data": [{
+                "materias": [{"materia": {"codigo": "1", "texto": "Test"}}],
+                "referencias": {
+                    "anteriores": [{
+                        "anterior": [{"id_norma": "BOE-A-0001", "relacion": {"codigo": "210", "texto": "DEROGA"}, "texto": "Test"}],
+                    }],
+                },
+            }],
         }
 
         with patch("normativa.tools.metadata.get_client", new_callable=AsyncMock) as mock_gc, \

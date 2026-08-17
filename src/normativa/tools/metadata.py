@@ -7,6 +7,33 @@ from typing import Any
 from normativa.tools._shared import get_client, get_cache
 
 
+def _as_list(value: Any) -> list:
+    """La conversion XML->JSON del BOE devuelve dict con un elemento y lista con varios."""
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return value
+    return [value]
+
+
+def _parse_referencias(refs_wrapper: Any, inner_key: str) -> list[dict[str, Any]]:
+    """Aplana referencias.anteriores/posteriores[*].{anterior|posterior}[*]."""
+    resultado: list[dict[str, Any]] = []
+    for wrapper in _as_list(refs_wrapper):
+        if not isinstance(wrapper, dict):
+            continue
+        for ref in _as_list(wrapper.get(inner_key)):
+            if not isinstance(ref, dict):
+                continue
+            relacion = ref.get("relacion", {})
+            resultado.append({
+                "id_norma": ref.get("id_norma", ""),
+                "relacion": relacion.get("texto", "") if isinstance(relacion, dict) else str(relacion),
+                "texto": ref.get("texto", ""),
+            })
+    return resultado
+
+
 async def obtener_metadatos(boe_id: str) -> dict[str, Any]:
     """Obtiene los metadatos completos de una disposicion del BOE.
 
@@ -52,8 +79,9 @@ async def obtener_analisis(
     - incluir_referencias: si incluir normas que afecta/es afectada por (default True)
     - max_referencias: limite de referencias por tipo (default 20)
 
-    Devuelve: materias, notas, referencias (afecta_a, afectada_por) con sus
-    identificadores y descripcion.
+    Devuelve: materias y referencias cruzadas — afecta_a (normas anteriores
+    sobre las que actua: DEROGA, MODIFICA...) y afectada_por (normas
+    posteriores que la modifican), con id_norma, relacion y descripcion.
     """
     try:
         if not boe_id or not boe_id.startswith("BOE"):
@@ -65,31 +93,39 @@ async def obtener_analisis(
             "analisis", boe_id, lambda: client.legislacion_analisis(boe_id)
         )
 
+        # Envelope real: {"status": ..., "data": [{materias, referencias, notas}]}
         analisis = data.get("data", data) if isinstance(data, dict) else data
+        entries = _as_list(analisis)
+        analisis = entries[0] if entries and isinstance(entries[0], dict) else {}
 
         resultado: dict[str, Any] = {"boe_id": boe_id}
 
-        if isinstance(analisis, dict):
-            # Materias
-            if "materias" in analisis:
-                resultado["materias"] = analisis["materias"]
+        materias = [
+            {"codigo": m["materia"].get("codigo", ""), "texto": m["materia"].get("texto", "")}
+            for m in _as_list(analisis.get("materias"))
+            if isinstance(m, dict) and isinstance(m.get("materia"), dict)
+        ]
+        if materias:
+            resultado["materias"] = materias
 
-            # Notas
-            if "notas" in analisis:
-                resultado["notas"] = analisis["notas"]
+        if "notas" in analisis:
+            resultado["notas"] = analisis["notas"]
 
-            # Referencias cruzadas
-            if incluir_referencias:
-                for tipo_ref in ("afecta_a", "afectada_por", "referencias"):
-                    if tipo_ref in analisis:
-                        refs = analisis[tipo_ref]
-                        if isinstance(refs, list):
-                            resultado[tipo_ref] = refs[:max_referencias]
-                            if len(refs) > max_referencias:
-                                resultado[f"{tipo_ref}_total"] = len(refs)
-                                resultado[f"{tipo_ref}_truncado"] = True
-                        else:
-                            resultado[tipo_ref] = refs
+        if incluir_referencias:
+            referencias = analisis.get("referencias", {})
+            if isinstance(referencias, dict):
+                # anteriores = normas previas sobre las que esta actua;
+                # posteriores = normas posteriores que actuan sobre esta.
+                for clave_salida, clave_api, inner in (
+                    ("afecta_a", "anteriores", "anterior"),
+                    ("afectada_por", "posteriores", "posterior"),
+                ):
+                    refs = _parse_referencias(referencias.get(clave_api), inner)
+                    if refs:
+                        resultado[clave_salida] = refs[:max_referencias]
+                        if len(refs) > max_referencias:
+                            resultado[f"{clave_salida}_total"] = len(refs)
+                            resultado[f"{clave_salida}_truncado"] = True
 
         return resultado
 

@@ -30,33 +30,70 @@ def _fecha_a_yyyymmdd(fecha: str) -> str:
     return fecha  # Devolver tal cual y dejar que la API falle con mensaje claro
 
 
-def _simplificar_entrada_sumario(item: dict) -> dict[str, Any]:
-    """Extrae campos clave de una entrada del sumario."""
-    return {
-        "boe_id": item.get("id", item.get("identificador", "")),
-        "titulo": item.get("titulo", item.get("title", "")),
-        "seccion": item.get("seccion", ""),
-        "departamento": item.get("departamento", ""),
-        "rango": item.get("rango", item.get("tipo", "")),
-        "url_pdf": item.get("url_pdf", item.get("url", "")),
-    }
+def _as_list(value: Any) -> list:
+    """La conversion XML->JSON del BOE devuelve dict con un elemento y lista con varios."""
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return value
+    return [value]
 
 
-def _extraer_entradas_sumario(data: dict) -> list[dict]:
-    """Extrae entradas del envelope de sumario."""
-    if isinstance(data, list):
-        return data
-    items = data.get("data", data.get("items", data.get("sumario", [])))
-    if isinstance(items, dict):
-        # A veces el sumario tiene secciones anidadas
-        entries = []
-        for section in items.values():
-            if isinstance(section, list):
-                entries.extend(section)
-            elif isinstance(section, dict) and "items" in section:
-                entries.extend(section["items"])
-        return entries if entries else [items]
-    return items if isinstance(items, list) else []
+def _url_pdf(item: dict) -> str:
+    """url_pdf viene como {"szBytes": ..., "texto": "https://..."} o string."""
+    url = item.get("url_pdf", "")
+    if isinstance(url, dict):
+        return url.get("texto", "")
+    return url
+
+
+def _extraer_entradas_sumario(data: dict) -> list[dict[str, Any]]:
+    """Aplana el sumario real: data.sumario.diario[].seccion[].departamento[].[epigrafe[]].item[].
+
+    Cada entrada sale ya simplificada con el contexto (seccion, departamento,
+    epigrafe) de la rama donde estaba anidada. Los items pueden colgar del
+    departamento directamente (seccion V) o de la seccion (BORME).
+    """
+    entradas: list[dict[str, Any]] = []
+
+    def emitir(item: Any, seccion: str, departamento: str, epigrafe: str) -> None:
+        if not isinstance(item, dict):
+            return
+        entradas.append({
+            "boe_id": item.get("identificador", item.get("id", "")),
+            "titulo": item.get("titulo", ""),
+            "seccion": seccion,
+            "departamento": departamento,
+            "epigrafe": epigrafe,
+            "url_pdf": _url_pdf(item),
+            "url_html": item.get("url_html", ""),
+        })
+
+    sumario = data.get("data", {}).get("sumario", {}) if isinstance(data, dict) else {}
+    for diario in _as_list(sumario.get("diario")):
+        if not isinstance(diario, dict):
+            continue
+        for seccion in _as_list(diario.get("seccion")):
+            if not isinstance(seccion, dict):
+                continue
+            nombre_seccion = f"{seccion.get('codigo', '')} {seccion.get('nombre', '')}".strip()
+            # BORME: items directamente bajo la seccion
+            for item in _as_list(seccion.get("item")):
+                emitir(item, nombre_seccion, "", "")
+            for dep in _as_list(seccion.get("departamento")):
+                if not isinstance(dep, dict):
+                    continue
+                nombre_dep = dep.get("nombre", "")
+                # Seccion V: items directamente bajo el departamento
+                for item in _as_list(dep.get("item")):
+                    emitir(item, nombre_seccion, nombre_dep, "")
+                for epigrafe in _as_list(dep.get("epigrafe")):
+                    if not isinstance(epigrafe, dict):
+                        continue
+                    for item in _as_list(epigrafe.get("item")):
+                        emitir(item, nombre_seccion, nombre_dep, epigrafe.get("nombre", ""))
+
+    return entradas
 
 
 async def sumario_boe(
@@ -84,8 +121,7 @@ async def sumario_boe(
         client = await get_client()
         data = await client.sumario_boe(fecha_api)
 
-        entradas = _extraer_entradas_sumario(data)
-        resultados = [_simplificar_entrada_sumario(e) for e in entradas]
+        resultados = _extraer_entradas_sumario(data)
 
         # Filtros opcionales
         if seccion:
@@ -141,8 +177,7 @@ async def sumario_borme(fecha: str = "") -> dict[str, Any]:
         client = await get_client()
         data = await client.sumario_borme(fecha_api)
 
-        entradas = _extraer_entradas_sumario(data)
-        resultados = [_simplificar_entrada_sumario(e) for e in entradas]
+        resultados = _extraer_entradas_sumario(data)
 
         total = len(resultados)
         resultados = resultados[:50]

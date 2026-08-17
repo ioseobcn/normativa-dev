@@ -103,12 +103,22 @@ async def buscar_legislacion(
             items = _extraer_items(data)
             resultados = [_simplificar_resultado(item) for item in items]
 
-            return {
+            respuesta: dict[str, Any] = {
                 "total": data.get("total", len(resultados)),
                 "offset": offset,
                 "limit": limit,
                 "resultados": resultados,
             }
+            if not resultados:
+                # Complementar con el registro local de dominios
+                sugerencias = _leyes_from_registry(query)
+                if sugerencias:
+                    respuesta["sugerencias_registro"] = sugerencias[:limit]
+                    respuesta["nota"] = (
+                        "La busqueda en el BOE no devolvio resultados; se incluyen "
+                        "leyes clave del registro local que coinciden con la consulta."
+                    )
+            return respuesta
         except Exception as api_exc:
             # BOE API failed — fall back to local domain registry
             logger.warning("BOE API search failed (%s), falling back to registry", api_exc)
@@ -135,8 +145,8 @@ async def buscar_por_dominio(
     En vez de construir queries complejas, indica el dominio juridico y normativa
     selecciona automaticamente los terminos, materias y rangos adecuados.
 
-    Dominios disponibles: laboral, fiscal, mercantil, autonomos, administrativo,
-    penal, civil, proteccion_datos, digital, vivienda, medioambiental, consumo.
+    Dominios disponibles: fiscal, laboral, mercantil, autonomos,
+    proteccion_datos, digital, vivienda (ver listar_dominios()).
 
     Parametros:
     - dominio: clave del dominio (ej: "laboral", "fiscal"). Si vacio, busca en todos.
@@ -227,9 +237,11 @@ async def buscar_por_dominio(
 
         try:
             client = await get_client()
+            # OR: las keywords de dominio son alternativas, no condiciones
             data = await client.legislacion_lista(
                 limit=15,
                 query=query_text,
+                query_op="OR",
             )
             items = _extraer_items(data)
             resultados = [_simplificar_resultado(item) for item in items]

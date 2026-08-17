@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
+import re
 from typing import Any
 
 import httpx
@@ -11,6 +13,28 @@ import httpx
 logger = logging.getLogger(__name__)
 
 BASE_URL = "https://www.boe.es/datosabiertos/api"
+
+# La API solo acepta `query` como JSON estilo Elasticsearch (query_string
+# sobre el campo `titulo`); texto plano o caracteres especiales Lucene
+# devuelven 500.
+_LUCENE_SPECIALS = re.compile(r'[+\-=&|><!(){}\[\]^"~*?:\\/,.;]')
+
+
+def build_query_param(text: str, op: str = "AND") -> str | None:
+    """Convierte texto libre en el JSON query_string que espera la API BOE.
+
+    Sanea caracteres especiales Lucene y une las palabras con *op*
+    (AND para precision, OR para listas de keywords). Devuelve None si
+    no queda ningun termino util.
+    """
+    words = [w for w in _LUCENE_SPECIALS.sub(" ", text).split() if len(w) > 1]
+    if not words:
+        return None
+    joined = f" {op} ".join(words)
+    return json.dumps(
+        {"query": {"query_string": {"query": f"titulo:({joined})"}}},
+        ensure_ascii=False,
+    )
 
 _MAX_RETRIES = 3
 _BACKOFF_BASE = 1.0
@@ -125,10 +149,13 @@ class BOEClient:
         from_date: str | None = None,
         to_date: str | None = None,
         query: str | None = None,
+        query_op: str = "AND",
     ) -> dict:
         """List legislation matching optional filters.
 
-        Dates use YYYYMMDD format.
+        Dates use YYYYMMDD format. *query* is free text; it is converted to
+        the Elasticsearch-style JSON the API requires (searching `titulo`),
+        joining terms with *query_op* ("AND" or "OR").
         """
         params: dict[str, Any] = {"limit": limit, "offset": offset}
         if from_date:
@@ -136,7 +163,9 @@ class BOEClient:
         if to_date:
             params["to"] = to_date
         if query:
-            params["query"] = query
+            query_json = build_query_param(query, op=query_op)
+            if query_json:
+                params["query"] = query_json
         resp = await self._request("/legislacion-consolidada", params=params)
         return resp.json()
 
