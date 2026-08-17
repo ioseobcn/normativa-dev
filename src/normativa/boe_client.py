@@ -20,6 +20,14 @@ BASE_URL = "https://www.boe.es/datosabiertos/api"
 _LUCENE_SPECIALS = re.compile(r'[+\-=&|><!(){}\[\]^"~*?:\\/,.;]')
 
 
+class BOEAPIError(Exception):
+    """Error de la API del BOE con mensaje corto (apto para contexto LLM)."""
+
+    def __init__(self, message: str, status_code: int | None = None) -> None:
+        super().__init__(message)
+        self.status_code = status_code
+
+
 def build_query_param(text: str, op: str = "AND") -> str | None:
     """Convierte texto libre en el JSON query_string que espera la API BOE.
 
@@ -104,7 +112,10 @@ class BOEClient:
                 except httpx.HTTPStatusError as exc:
                     # 4xx errors are client errors — retrying won't help
                     if exc.response.status_code < 500:
-                        raise
+                        raise BOEAPIError(
+                            f"BOE API devolvio {exc.response.status_code} para {path}",
+                            status_code=exc.response.status_code,
+                        ) from exc
                     last_exc = exc
                     delay = _BACKOFF_BASE * (2 ** (attempt - 1))
                     logger.warning(
@@ -129,7 +140,16 @@ class BOEClient:
                     )
                     await asyncio.sleep(delay)
 
-        raise last_exc  # type: ignore[misc]
+        status = (
+            last_exc.response.status_code
+            if isinstance(last_exc, httpx.HTTPStatusError)
+            else None
+        )
+        detalle = f"error {status}" if status else type(last_exc).__name__
+        raise BOEAPIError(
+            f"BOE API no disponible ({detalle} tras {_MAX_RETRIES} intentos en {path})",
+            status_code=status,
+        ) from last_exc
 
     async def _get_json(self, path: str, **params: Any) -> dict:
         params = {k: v for k, v in params.items() if v is not None}

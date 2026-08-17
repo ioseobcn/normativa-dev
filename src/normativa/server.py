@@ -6,7 +6,12 @@ from mcp.server.fastmcp import FastMCP
 
 from normativa.tools.search import buscar_legislacion, buscar_por_dominio
 from normativa.tools.metadata import obtener_metadatos, obtener_analisis
-from normativa.tools.text import leer_indice, leer_articulo, leer_articulos_rango
+from normativa.tools.text import (
+    leer_indice,
+    leer_articulo,
+    leer_articulos_rango,
+    historial_versiones,
+)
 from normativa.tools.summary import sumario_boe, sumario_borme
 from normativa.tools.domain import listar_dominios
 from normativa.tools.auxiliary import datos_auxiliares
@@ -35,6 +40,7 @@ mcp.tool()(obtener_analisis)
 mcp.tool()(leer_indice)
 mcp.tool()(leer_articulo)
 mcp.tool()(leer_articulos_rango)
+mcp.tool()(historial_versiones)
 
 # -- Sumarios diarios -------------------------------------------------------
 

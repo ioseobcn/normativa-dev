@@ -152,3 +152,49 @@ class TestParseIndice:
         result = parse_indice(data)
         assert len(result) == 1
         assert result[0]["id"] == "a1"
+
+
+_MULTIVERSION_XML = (
+    '<response status="OK"><data>'
+    '<bloque id="a48" tipo="precepto" titulo="Articulo 48.">'
+    '<version id_norma="BOE-A-2015-11430" fecha_publicacion="20151024" fecha_vigencia="20151113">'
+    '<p class="parrafo">Redaccion original.</p>'
+    "</version>"
+    '<version id_norma="BOE-A-2024-25523" fecha_publicacion="20241206" fecha_vigencia="20241206">'
+    '<p class="parrafo">Redaccion reformada.</p>'
+    "</version>"
+    '<version id_norma="BOE-A-2099-1" fecha_publicacion="20990101" fecha_vigencia="20990102">'
+    '<p class="parrafo">Redaccion futura aun no vigente.</p>'
+    "</version>"
+    "</bloque>"
+    "</data></response>"
+)
+
+
+class TestParseBloqueMultiversion:
+    """Un bloque con varias <version> debe devolver la vigente, no la primera."""
+
+    def test_devuelve_version_vigente(self):
+        result = parse_bloque(_MULTIVERSION_XML)
+        assert result["version"]["id_norma"] == "BOE-A-2024-25523"
+        assert "reformada" in result["texto_markdown"]
+        assert "original" not in result["texto_markdown"]
+
+    def test_ignora_versiones_futuras(self):
+        result = parse_bloque(_MULTIVERSION_XML)
+        assert "futura" not in result["texto_markdown"]
+
+    def test_lista_todas_las_versiones(self):
+        result = parse_bloque(_MULTIVERSION_XML)
+        assert len(result["versiones"]) == 3
+        assert result["versiones"][0]["fecha_vigencia"] == "20151113"
+
+    def test_seleccion_por_fecha_vigencia(self):
+        result = parse_bloque(_MULTIVERSION_XML, fecha_vigencia="20151113")
+        assert "original" in result["texto_markdown"]
+        assert result["version"]["id_norma"] == "BOE-A-2015-11430"
+
+    def test_fecha_vigencia_inexistente_lanza_error(self):
+        import pytest as _pytest
+        with _pytest.raises(ValueError, match="Disponibles"):
+            parse_bloque(_MULTIVERSION_XML, fecha_vigencia="19990101")

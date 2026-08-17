@@ -5,8 +5,15 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Any
 
-from normativa.tools._shared import get_client
+from normativa.tools._shared import get_client, get_cache
 from normativa.domains import buscar_por_keywords
+
+
+def _ttl_sumario(fecha_api: str) -> int:
+    """Sumarios pasados no cambian (TTL largo); el de hoy puede completarse."""
+    if fecha_api == date.today().strftime("%Y%m%d"):
+        return 6  # horas
+    return 24 * 30
 
 
 def _fecha_a_yyyymmdd(fecha: str) -> str:
@@ -119,7 +126,12 @@ async def sumario_boe(
         fecha_api = _fecha_a_yyyymmdd(fecha)
 
         client = await get_client()
-        data = await client.sumario_boe(fecha_api)
+        cache = await get_cache()
+        data = await cache.get_or_fetch(
+            "sumarios", ("boe", fecha_api),
+            lambda: client.sumario_boe(fecha_api),
+            ttl_hours=_ttl_sumario(fecha_api),
+        )
 
         resultados = _extraer_entradas_sumario(data)
 
@@ -175,7 +187,12 @@ async def sumario_borme(fecha: str = "") -> dict[str, Any]:
         fecha_api = _fecha_a_yyyymmdd(fecha)
 
         client = await get_client()
-        data = await client.sumario_borme(fecha_api)
+        cache = await get_cache()
+        data = await cache.get_or_fetch(
+            "sumarios", ("borme", fecha_api),
+            lambda: client.sumario_borme(fecha_api),
+            ttl_hours=_ttl_sumario(fecha_api),
+        )
 
         resultados = _extraer_entradas_sumario(data)
 

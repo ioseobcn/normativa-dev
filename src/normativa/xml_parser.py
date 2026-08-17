@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Any
 
 import defusedxml.ElementTree as ET
@@ -44,8 +45,43 @@ def _p_to_markdown(p: ET.Element) -> str:  # type: ignore[name-defined]
 # -- Public API -----------------------------------------------------------
 
 
-def parse_bloque(xml_text: str) -> dict[str, Any]:
+def _version_meta(elem: ET.Element) -> dict[str, str]:  # type: ignore[name-defined]
+    return {
+        "id_norma": elem.get("id_norma", ""),
+        "fecha_publicacion": elem.get("fecha_publicacion", ""),
+        "fecha_vigencia": elem.get("fecha_vigencia", ""),
+    }
+
+
+def _render_markdown(source: ET.Element) -> str:  # type: ignore[name-defined]
+    """Convert the <p> children of *source* into Markdown text."""
+    paragraphs: list[str] = []
+    for p in source.findall("p"):
+        line = _p_to_markdown(p)
+        if line:
+            paragraphs.append(line)
+
+    # Join with blank lines between paragraphs; headings get an extra blank after.
+    md_lines: list[str] = []
+    for line in paragraphs:
+        if line.startswith("## "):
+            if md_lines:
+                md_lines.append("")
+            md_lines.append(line)
+            md_lines.append("")
+        else:
+            md_lines.append(line)
+
+    return "\n".join(md_lines).strip()
+
+
+def parse_bloque(xml_text: str, fecha_vigencia: str | None = None) -> dict[str, Any]:
     """Parse a BOE ``texto/bloque`` XML response into a structured dict.
+
+    A block carries one ``<version>`` element per consolidation (original
+    text plus each amendment), oldest first. By default the text returned is
+    the version in force today (latest ``fecha_vigencia`` not in the future);
+    pass *fecha_vigencia* (YYYYMMDD) to select a specific historic version.
 
     Returns::
 
@@ -58,6 +94,7 @@ def parse_bloque(xml_text: str) -> dict[str, Any]:
                 "fecha_publicacion": "20061129",
                 "fecha_vigencia": "20070101",
             },
+            "versiones": [ ...metadata de todas las versiones... ],
             "texto_markdown": "## Articulo 1. Naturaleza ...\\n\\nEl Impuesto...",
         }
     """
@@ -76,42 +113,35 @@ def parse_bloque(xml_text: str) -> dict[str, Any]:
     tipo: str = bloque.get("tipo", "")
     titulo: str = bloque.get("titulo", "")
 
-    # Version info
-    version_elem = bloque.find("version")
-    version_info: dict[str, str] = {}
-    if version_elem is not None:
-        version_info = {
-            "id_norma": version_elem.get("id_norma", ""),
-            "fecha_publicacion": version_elem.get("fecha_publicacion", ""),
-            "fecha_vigencia": version_elem.get("fecha_vigencia", ""),
-        }
+    versiones = bloque.findall("version")
 
-    # Convert <p> elements to Markdown lines
-    paragraphs: list[str] = []
-    source = version_elem if version_elem is not None else bloque
-    for p in source.findall("p"):
-        line = _p_to_markdown(p)
-        if line:
-            paragraphs.append(line)
-
-    # Join with blank lines between paragraphs; headings get an extra blank after.
-    md_lines: list[str] = []
-    for line in paragraphs:
-        if line.startswith("## "):
-            if md_lines:
-                md_lines.append("")
-            md_lines.append(line)
-            md_lines.append("")
+    selected: ET.Element | None = None  # type: ignore[name-defined]
+    if versiones:
+        if fecha_vigencia:
+            for v in versiones:
+                if v.get("fecha_vigencia", "") == fecha_vigencia:
+                    selected = v
+                    break
+            if selected is None:
+                raise ValueError(
+                    f"No hay version con fecha_vigencia={fecha_vigencia}. "
+                    f"Disponibles: {[v.get('fecha_vigencia', '') for v in versiones]}"
+                )
         else:
-            md_lines.append(line)
+            # Version vigente hoy: la ultima cuya vigencia no sea futura.
+            hoy = date.today().strftime("%Y%m%d")
+            vigentes = [v for v in versiones if v.get("fecha_vigencia", "") <= hoy]
+            selected = vigentes[-1] if vigentes else versiones[0]
 
-    texto_markdown = "\n".join(md_lines).strip()
+    source = selected if selected is not None else bloque
+    texto_markdown = _render_markdown(source)
 
     return {
         "id": bloque_id,
         "tipo": tipo,
         "titulo": titulo,
-        "version": version_info,
+        "version": _version_meta(selected) if selected is not None else {},
+        "versiones": [_version_meta(v) for v in versiones],
         "texto_markdown": texto_markdown,
     }
 

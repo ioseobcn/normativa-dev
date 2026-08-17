@@ -11,7 +11,7 @@ Capa 1: BOE API Client (src/normativa/boe_client.py)
   - Endpoints: /legislacion-consolidada, /boe/sumario/{fecha}, /datos-auxiliares/{tipo}
 
 Capa 2: MCP Server (src/normativa/server.py + tools/)
-  - 11 tools FastMCP (buscar_por_dominio es el diferencial)
+  - 12 tools FastMCP (buscar_por_dominio es el diferencial)
   - Cache SQLite en ~/.cache/normativa/cache.db
   - XML parser para bloques de texto → markdown
 
@@ -31,7 +31,7 @@ Capa 4: Agent Team (.claude/agents/)
 | src/normativa/xml_parser.py | XML bloque → markdown limpio |
 | src/normativa/cache.py | Cache SQLite con TTL |
 | src/normativa/registry.py | Cargador de dominios tematicos |
-| src/normativa/server.py | FastMCP server (11 tools) |
+| src/normativa/server.py | FastMCP server (12 tools) |
 | src/normativa/cli.py | CLI click |
 | src/normativa/domains/_base.py | Dataclasses: DomainConfig, LeyRef, Subtema, EURef |
 | src/normativa/domains/{nombre}.py | Definicion de cada dominio (leyes, articulos, materias) |
@@ -48,8 +48,18 @@ Endpoints verificados:
 - GET /boe/sumario/{YYYYMMDD} (JSON)
 - GET /datos-auxiliares/materias|departamentos|rangos|ambitos (JSON)
 
-Limitaciones:
-- El param `query` en /legislacion-consolidada devuelve 500 para muchas consultas
+Limitaciones y peculiaridades:
+- El param `query` de /legislacion-consolidada exige JSON estilo Elasticsearch:
+  {"query":{"query_string":{"query":"titulo:(despido OR estatuto)"}}}.
+  Texto plano o caracteres especiales Lucene sin sanear → 500.
+  Solo funciona el campo `titulo:`; usar boe_client.build_query_param().
+- Los envelopes JSON alternan dict/lista segun cardinalidad (conversion
+  XML→JSON): un solo hijo llega como dict. Usar helpers _as_list.
+- Envelope del indice: data[0].bloque[]. Analisis: data[0].materias[].materia
+  + referencias.anteriores/posteriores[].anterior/posterior[].
+  Sumario: data.sumario.diario[].seccion[].departamento[].[epigrafe[]].item[].
+- Los bloques traen UNA <version> por consolidacion (la mas antigua primero);
+  parse_bloque selecciona la vigente hoy (puede haber versiones futuras).
 - Materias NO son filtrables en listing (solo en /analisis por documento)
 - Texto SOLO en XML — los endpoints /texto/ solo aceptan application/xml
 - IDs de bloque varian: a1, a10, tpreliminar, dfquinta, dtercera

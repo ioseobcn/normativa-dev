@@ -93,10 +93,17 @@ class TestExtraerEntradas:
 
 class TestSumarioBoe:
     async def test_filtro_departamento(self):
-        with patch("normativa.tools.summary.get_client", new_callable=AsyncMock) as mock_gc:
+        with patch("normativa.tools.summary.get_client", new_callable=AsyncMock) as mock_gc, \
+             patch("normativa.tools.summary.get_cache", new_callable=AsyncMock) as mock_cc:
             mock_client = AsyncMock()
             mock_client.sumario_boe.return_value = _sumario_real()
             mock_gc.return_value = mock_client
+
+            mock_cache = AsyncMock()
+            async def passthrough_fetch(table, key, fn, **kwargs):
+                return await fn()
+            mock_cache.get_or_fetch.side_effect = passthrough_fetch
+            mock_cc.return_value = mock_cache
 
             result = await sumario_boe(fecha="20260814", departamento="hacienda")
 
