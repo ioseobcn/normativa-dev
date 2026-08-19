@@ -32,7 +32,7 @@ dependencies = [
 normativa = "normativa.cli:main"
 
 [project.urls]
-Homepage = "https://innovaorigen.io"
+Homepage = "https://innovaorigen.tech"
 Documentation = "https://ioseobcn.github.io/normativa-dev/"
 Repository = "https://github.com/ioseobcn/normativa-dev"
 Issues = "https://github.com/ioseobcn/normativa-dev/issues"

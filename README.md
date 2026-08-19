@@ -8,7 +8,7 @@
 
 Accede a toda la legislacion espanola a traves del [BOE](https://www.boe.es/) (Boletin Oficial del Estado) usando herramientas MCP optimizadas para LLMs, una API REST compatible con ChatGPT Actions, o una CLI directa.
 
-**Web:** [innovaorigen.io](https://innovaorigen.io)
+**Web:** [innovaorigen.tech](https://innovaorigen.tech)
 
 ---
 
@@ -316,4 +316,4 @@ Este software tiene caracter informativo y **no constituye asesoramiento legal**
 
 ## Licencia
 
-[MIT](LICENSE) — [InnovaOrigen](https://innovaorigen.io) 2026
+[MIT](LICENSE) — [InnovaOrigen](https://innovaorigen.tech) 2026
