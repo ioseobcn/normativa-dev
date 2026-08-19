@@ -27,6 +27,8 @@ jobs:
         run: uv build
 
       - name: Publish to PyPI
+        # Se omite mientras no exista el secreto PYPI_TOKEN
+        if: ${{ secrets.PYPI_TOKEN != '' }}
         run: uv publish
         env:
           UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
