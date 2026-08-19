@@ -15,6 +15,7 @@ from normativa.tools.text import (
 from normativa.tools.summary import sumario_boe, sumario_borme
 from normativa.tools.domain import listar_dominios
 from normativa.tools.auxiliary import datos_auxiliares
+from normativa.tools.europa import leer_norma_ue
 
 mcp = FastMCP("normativa")
 
@@ -41,6 +42,10 @@ mcp.tool()(leer_indice)
 mcp.tool()(leer_articulo)
 mcp.tool()(leer_articulos_rango)
 mcp.tool()(historial_versiones)
+
+# -- Derecho de la UE (DOUE) ------------------------------------------------
+
+mcp.tool()(leer_norma_ue)
 
 # -- Sumarios diarios -------------------------------------------------------
 

@@ -14,6 +14,7 @@ class EURef:
     tipo: str  # "reglamento", "directiva", "decision"
     eli_url: str = ""  # "http://data.europa.eu/eli/reg/2016/679/oj"
     relacion: str = "transpone"  # "transpone", "implementa", "complementa", "deroga"
+    doue_id: str = ""  # "DOUE-L-2024-81079" — legible via leer_norma_ue()
 
 
 @dataclass
@@ -57,3 +58,6 @@ class DomainConfig:
     terminos_busqueda: list[str] = field(default_factory=list)
     dominios_relacionados: list[str] = field(default_factory=list)
     casos_uso: dict[str, str] = field(default_factory=dict)  # slug -> description
+    normas_ue: list[EURef] = field(default_factory=list)
+    # Derecho UE directamente aplicable al dominio (reglamentos sin
+    # transposicion espanola, ej. AI Act) — legible via leer_norma_ue()

@@ -149,5 +149,21 @@ DOMAIN = DomainConfig(
         "politica_cookies": "Implementar politica de cookies conforme a la ley",
         "email_marketing_legal": "Enviar comunicaciones comerciales de forma legal",
         "firma_contratos": "Firmar contratos electronicamente con validez legal",
+        "ia": "Cumplir el Reglamento de IA (AI Act) al desarrollar o usar sistemas de IA",
     },
+    normas_ue=[
+        # Reglamentos directamente aplicables (sin transposicion espanola).
+        # doue_id verificado contra www.boe.es/buscar/xml.php.
+        EURef(
+            celex="32024R1689",
+            titulo=(
+                "Reglamento (UE) 2024/1689 de Inteligencia Artificial (AI Act) — "
+                "aplicable desde el 2 de agosto de 2026"
+            ),
+            tipo="reglamento",
+            eli_url="http://data.europa.eu/eli/reg/2024/1689/oj",
+            relacion="aplicable",
+            doue_id="DOUE-L-2024-81079",
+        ),
+    ],
 )

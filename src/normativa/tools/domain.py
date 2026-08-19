@@ -37,6 +37,11 @@ async def listar_dominios() -> dict[str, Any]:
                         {"boe_id": boe_id, "nombre": ley.nombre_corto}
                         for boe_id, ley in cfg.leyes_clave.items()
                     ]
+                    if cfg.normas_ue:
+                        entry["normas_ue"] = [
+                            {"doue_id": r.doue_id, "celex": r.celex, "titulo": r.titulo}
+                            for r in cfg.normas_ue
+                        ]
                     entry["enriquecido"] = True
                 except Exception:
                     entry["enriquecido"] = False

@@ -219,6 +219,22 @@ class BOEClient:
         """Fetch the BORME daily summary for *fecha* (YYYYMMDD)."""
         return await self._get_json(f"/borme/sumario/{fecha}")
 
+    async def doue_documento(self, doue_id: str) -> str:
+        """Fetch a DOUE document (EU law as published) as raw XML.
+
+        The open-data API does not cover the DOUE; the BOE serves these
+        documents through its search endpoint instead (absolute URL, so it
+        bypasses the client's base_url).
+        """
+        if not doue_id.startswith("DOUE-"):
+            raise BOEAPIError(f"id DOUE invalido: '{doue_id}'. Debe empezar por 'DOUE-'.")
+        resp = await self._request(
+            "https://www.boe.es/buscar/xml.php",
+            params={"id": doue_id},
+            accept="application/xml",
+        )
+        return resp.text
+
     async def datos_auxiliares(self, tipo: str) -> dict:
         """Fetch auxiliary reference data.
 

@@ -20,6 +20,7 @@ TTL_DEFAULTS: dict[str, int] = {
     "bloques": 72,
     "sumarios": 0,
     "auxiliares": 720,
+    "doue": 720,  # documentos DOUE tal como se publicaron — inmutables
 }
 
 # Table schemas: table_name -> (key_columns, has_composite_pk)
@@ -30,6 +31,7 @@ _SCHEMAS: dict[str, tuple[list[str], bool]] = {
     "bloques": (["boe_id", "bloque_id"], True),
     "sumarios": (["tipo", "fecha"], True),
     "auxiliares": (["key"], False),
+    "doue": (["key"], False),
 }
 
 

@@ -146,6 +146,138 @@ def parse_bloque(xml_text: str, fecha_vigencia: str | None = None) -> dict[str, 
     }
 
 
+# -- DOUE (derecho de la UE publicado en el Diario Oficial) ----------------
+#
+# El BOE sirve los documentos DOUE en /buscar/xml.php con las mismas clases
+# CSS que la legislacion consolidada: articulo (encabezado "Artículo N"),
+# parrafo, capitulo_num/tit, seccion, anexo_num/tit, cita. El titulo del
+# articulo va en el <p class="parrafo"> inmediatamente posterior.
+
+_DOUE_META_KEYS = (
+    "identificador", "titulo", "rango", "numero_oficial", "departamento",
+    "fecha_disposicion", "fecha_publicacion", "fecha_vigencia", "diario",
+    "url_pdf", "url_eli", "estatus_derogacion", "fecha_derogacion",
+)
+
+
+def _doue_walk(elem: ET.Element) -> list[tuple[str, ET.Element]]:  # type: ignore[name-defined]
+    """Flatten <texto> into (kind, elem) items in document order.
+
+    Tables are kept whole (not descended into) so their inner <p> don't
+    duplicate as loose paragraphs.
+    """
+    items: list[tuple[str, ET.Element]] = []  # type: ignore[name-defined]
+    for child in elem:
+        if child.tag == "table":
+            items.append(("table", child))
+        elif child.tag == "p":
+            items.append(("p", child))
+        else:
+            items.extend(_doue_walk(child))
+    return items
+
+
+def _doue_segment_id(clase: str, texto: str) -> str | None:
+    """Id de segmento para encabezados: 'Artículo 5' → a5, 'ANEXO III' → anexoiii."""
+    limpio = texto.replace("\xa0", " ").strip()
+    if clase == "articulo":
+        num = "".join(c for c in limpio if c.isdigit())
+        if num:
+            return f"a{num}"
+    if clase == "anexo_num":
+        resto = limpio.lower().replace("anexo", "").strip()
+        return f"anexo{resto}" if resto else "anexo"
+    return None
+
+
+def _table_to_markdown(table: ET.Element) -> str:  # type: ignore[name-defined]
+    filas: list[str] = []
+    for tr in table.iter("tr"):
+        celdas = ["".join(td.itertext()).replace("\xa0", " ").strip() for td in tr if td.tag == "td"]
+        if any(celdas):
+            filas.append("| " + " | ".join(celdas) + " |")
+    return "\n".join(filas)
+
+
+def parse_doue(xml_text: str) -> dict[str, Any]:
+    """Parse a BOE DOUE document into metadata, analysis, and text segments.
+
+    Returns metadatos (subset), analisis (materias, notas), and segmentos:
+    a list of {id, titulo, elems} where elems are the (kind, elem) items of
+    that article/annex, ready for render_doue_segmento().
+    """
+    root = ET.fromstring(xml_text)
+    if root.tag != "documento":
+        raise ValueError("XML DOUE sin raiz <documento>")
+
+    meta_elem = root.find("metadatos")
+    metadatos = {
+        k: (meta_elem.findtext(k) or "").strip()
+        for k in _DOUE_META_KEYS
+        if meta_elem is not None
+    }
+
+    analisis: dict[str, Any] = {}
+    an = root.find("analisis")
+    if an is not None:
+        analisis["materias"] = [
+            (m.text or "").strip() for m in an.iter("materia") if (m.text or "").strip()
+        ]
+        analisis["notas"] = [
+            (n.text or "").strip() for n in an.iter("nota") if (n.text or "").strip()
+        ]
+
+    texto = root.find("texto")
+    items = _doue_walk(texto) if texto is not None else []
+
+    # Segmentar por encabezados de articulo/anexo. Lo anterior al primer
+    # encabezado (exposicion de motivos, considerandos) va a "preambulo".
+    segmentos: list[dict[str, Any]] = [{"id": "preambulo", "titulo": "Preámbulo y considerandos", "elems": []}]
+    for kind, elem in items:
+        clase = elem.get("class", "") if kind == "p" else ""
+        seg_id = _doue_segment_id(clase, "".join(elem.itertext())) if kind == "p" else None
+        if seg_id:
+            titulo_visible = "".join(elem.itertext()).replace("\xa0", " ").strip()
+            segmentos.append({"id": seg_id, "titulo": titulo_visible, "elems": [(kind, elem)]})
+        else:
+            segmentos[-1]["elems"].append((kind, elem))
+
+    # El titulo real del articulo es el primer parrafo corto tras el encabezado
+    for seg in segmentos[1:]:
+        for kind, elem in seg["elems"][1:3]:
+            if kind != "p":
+                break
+            txt = "".join(elem.itertext()).replace("\xa0", " ").strip()
+            clase = elem.get("class", "")
+            if clase in ("parrafo", "anexo_tit") and txt and len(txt) < 150 and not txt[0].isdigit():
+                seg["titulo"] = f"{seg['titulo']}. {txt}"
+                break
+
+    return {"metadatos": metadatos, "analisis": analisis, "segmentos": segmentos}
+
+
+def render_doue_segmento(segmento: dict[str, Any]) -> str:
+    """Render one parse_doue() segment as Markdown."""
+    lineas: list[str] = []
+    for kind, elem in segmento["elems"]:
+        if kind == "table":
+            md = _table_to_markdown(elem)
+            if md:
+                lineas.append(md)
+            continue
+        clase = elem.get("class", "")
+        txt = "".join(elem.itertext()).replace("\xa0", " ").strip()
+        if not txt:
+            continue
+        if clase in ("articulo", "anexo_num", "capitulo_num", "seccion"):
+            lineas.append(f"## {txt}")
+        elif clase in ("anexo_tit", "capitulo_tit"):
+            lineas.append(f"### {txt}")
+        else:
+            lineas.append(txt)
+    return "\n\n".join(lineas).strip()
+
+
 def parse_indice(data: dict) -> list[dict[str, str]]:
     """Parse an ``indice`` JSON response into a flat list.
 

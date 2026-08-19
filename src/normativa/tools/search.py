@@ -201,11 +201,17 @@ async def buscar_por_dominio(
                     "resultados": [],
                 }
 
-        # Si el dominio tiene DomainConfig rico, extraer leyes clave
+        # Si el dominio tiene DomainConfig rico, extraer leyes clave y normas UE
         leyes_clave: list[dict[str, Any]] = []
+        normas_ue: list[dict[str, Any]] = []
         if dominio in AVAILABLE_DOMAINS:
             try:
                 cfg = load_domain(dominio)
+                normas_ue = [
+                    {"celex": r.celex, "titulo": r.titulo, "tipo": r.tipo,
+                     "doue_id": r.doue_id, "nota": "leer con leer_norma_ue(doue_id)"}
+                    for r in cfg.normas_ue
+                ]
                 for boe_id, ley in cfg.leyes_clave.items():
                     entry: dict[str, Any] = {
                         "boe_id": boe_id,
@@ -268,6 +274,8 @@ async def buscar_por_dominio(
             }
             if leyes_clave:
                 resultado["leyes_clave"] = leyes_clave
+            if normas_ue:
+                resultado["normas_ue"] = normas_ue
             return resultado
 
         resultado = {
@@ -280,6 +288,8 @@ async def buscar_por_dominio(
         }
         if leyes_clave:
             resultado["leyes_clave"] = leyes_clave
+        if normas_ue:
+            resultado["normas_ue"] = normas_ue
 
         return resultado
     except Exception as exc:
