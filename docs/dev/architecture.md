@@ -380,7 +380,7 @@ usan `DOMINIOS` como fallback para keywords y subtemas basicos.
 
 ### Responsabilidad
 
-Registra las 11 tools en FastMCP y expone el servidor MCP via stdio.
+Registra las 13 tools en FastMCP y expone el servidor MCP via stdio.
 
 ### Registro de tools
 

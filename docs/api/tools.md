@@ -1,6 +1,6 @@
 # Tools MCP
 
-Referencia completa de las 11 herramientas MCP que expone `normativa`.
+Referencia completa de las 13 herramientas MCP que expone `normativa`.
 
 Todas las herramientas son funciones async que devuelven `dict`. FastMCP serializa automaticamente a JSON.
 
@@ -178,6 +178,51 @@ Lee un rango consecutivo de articulos. Limitado para no saturar el contexto.
 **Retorna:** `{"boe_id": "...", "articulos": [{bloque_id, titulo, texto}, ...], "truncado": false}`.
 
 ---
+
+### `historial_versiones`
+
+Historial de redacciones de un articulo: que normas lo modificaron y cuando.
+
+**Parametros:**
+
+| Parametro | Tipo | Requerido | Descripcion |
+|-----------|------|-----------|-------------|
+| `boe_id` | str | Si | Identificador BOE de la norma |
+| `bloque_id` | str | Si | Id del bloque o numero de articulo (`"a48"`, `"48"`) |
+| `fecha_vigencia` | str | No | YYYYMMDD — devuelve ademas el texto de esa version |
+
+**Devuelve:** lista de versiones con la norma modificadora (`id_norma`),
+fechas de publicacion y vigencia, y la vigente marcada. Con
+`fecha_vigencia`, incluye el texto integro de esa redaccion historica.
+
+**Ejemplo:** `historial_versiones("BOE-A-2015-11430", "48")` — las 8
+redacciones del art. 48 ET (permisos de nacimiento) desde 2015.
+
+## Derecho de la UE
+
+### `leer_norma_ue`
+
+Lee normas de la UE publicadas en el DOUE (reglamentos, directivas). La
+legislacion consolidada del BOE solo cubre normas espanolas; el derecho UE
+(AI Act, RGPD, DSA...) se publica en el DOUE. Texto en espanol tal como se
+publico (sin consolidar).
+
+**Parametros:**
+
+| Parametro | Tipo | Requerido | Descripcion |
+|-----------|------|-----------|-------------|
+| `doue_id` | str | Si | Id DOUE (`"DOUE-L-2024-81079"`) o CELEX mapeado (`"32024R1689"`) |
+| `articulo` | str | No | Articulo (`"5"`), anexo (`"anexo III"`) o `"preambulo"` |
+
+**Devuelve:** sin `articulo`, metadatos + materias + notas de vigencia +
+indice de articulos y anexos; con `articulo`, el texto de ese segmento en
+Markdown (tablas incluidas).
+
+**Ejemplo:** `leer_norma_ue("32024R1689", articulo="5")` — practicas de IA
+prohibidas del AI Act.
+
+Las normas UE mapeadas por dominio aparecen en `buscar_por_dominio` y
+`listar_dominios` bajo `normas_ue`, con su `doue_id` listo para leer.
 
 ## Sumarios diarios
 

@@ -1,6 +1,6 @@
 # MCP Server
 
-`normativa` expone 11 herramientas via el protocolo MCP (Model Context Protocol) usando FastMCP. Compatible con Claude Code, Cursor, VS Code, Windsurf, OpenCode y cualquier cliente MCP.
+`normativa` expone 13 herramientas via el protocolo MCP (Model Context Protocol) usando FastMCP. Compatible con Claude Code, Cursor, VS Code, Windsurf, OpenCode y cualquier cliente MCP.
 
 ## Configuracion por plataforma
 
@@ -128,6 +128,8 @@ Asegurate de que `normativa` esta instalado en el entorno Python que usa el `com
 | `leer_indice` | Indice de articulos de una ley |
 | `leer_articulo` | Texto de UN articulo en Markdown |
 | `leer_articulos_rango` | Hasta 10 articulos consecutivos |
+| `historial_versiones` | Redacciones historicas de un articulo (que norma lo modifico y cuando) |
+| `leer_norma_ue` | Derecho de la UE publicado en el DOUE (AI Act, RGPD, DSA...) |
 | `sumario_boe` | Sumario diario del BOE, filtrable por dominio |
 | `sumario_borme` | Sumario diario del BORME |
 | `listar_dominios` | Lista dominios tematicos disponibles |

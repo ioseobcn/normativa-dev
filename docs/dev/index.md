@@ -25,7 +25,7 @@ la [guia de inicio rapido](../guide/quickstart.md).
                               |
             +-----------------+-----------------+
             |     Capa 2: MCP Server + CLI       |
-            |  server.py (11 tools FastMCP)       |
+            |  server.py (13 tools FastMCP)       |
             |  cli.py (Click commands)            |
             |  tools/*.py (implementacion)        |
             |  cache.py (SQLite TTL)              |
@@ -50,7 +50,7 @@ la [guia de inicio rapido](../guide/quickstart.md).
 | `src/normativa/xml_parser.py` | Convierte bloques XML del BOE a Markdown limpio. Mapea clases CSS a formatos de texto. |
 | `src/normativa/cache.py` | Cache SQLite con TTL por tabla. Patron `get_or_fetch` que cachea automaticamente. |
 | `src/normativa/registry.py` | Carga dominios tematicos por nombre. Busqueda multi-dominio por scoring de palabras clave. |
-| `src/normativa/server.py` | Registra las 11 tools en FastMCP. Punto de entrada del servidor MCP. |
+| `src/normativa/server.py` | Registra las 13 tools en FastMCP. Punto de entrada del servidor MCP. |
 | `src/normativa/cli.py` | CLI basado en Click: `buscar`, `dominio`, `articulo`, `indice`, `sumario`, `serve`. |
 | `src/normativa/domains/_base.py` | Dataclasses: `DomainConfig`, `LeyRef`, `Subtema`, `EURef`. |
 | `src/normativa/domains/__init__.py` | Registro `AVAILABLE_DOMAINS` (con DomainConfig) y `DOMINIOS` (diccionarios simples). |

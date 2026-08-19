@@ -1,7 +1,7 @@
 # normativa — Legislacion espanola tematica
 
 MCP Server + CLI + Agent Team para legislacion espanola consolidada via API del BOE.
-Web: normativa.dev | PyPI: normativa | Licencia: MIT
+Web: innovaorigen.io | PyPI: normativa | Licencia: MIT
 
 ## Arquitectura (4 capas)
 

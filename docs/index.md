@@ -11,7 +11,7 @@
 | Caracteristica | Detalle |
 |---|---|
 | **7 dominios tematicos** | Fiscal, Laboral, Mercantil, Autonomos, Proteccion de datos, Digital, Vivienda |
-| **11 herramientas MCP** | Busqueda, lectura de articulos, sumarios, metadatos, analisis |
+| **13 herramientas MCP** | Busqueda, lectura de articulos, historial de versiones, sumarios, metadatos, analisis y derecho UE (DOUE) |
 | **9 agentes especializados** | 6 legales + 3 de desarrollo, pipeline de investigacion |
 | **17 leyes mapeadas** | Con 226+ articulos clave pre-identificados |
 | **Referencias cruzadas UE** | 5 directivas/reglamentos europeos enlazados en 3 dominios |

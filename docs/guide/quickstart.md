@@ -19,7 +19,7 @@ Anade a `.mcp.json` en la raiz de tu proyecto:
 }
 ```
 
-Reinicia Claude Code. Las 11 herramientas estaran disponibles automaticamente. Prueba con:
+Reinicia Claude Code. Las 13 herramientas estaran disponibles automaticamente. Prueba con:
 
 > "Busca legislacion sobre proteccion de datos en el dominio digital"
 

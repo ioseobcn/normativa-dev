@@ -8,7 +8,7 @@
 
 Accede a toda la legislacion espanola a traves del [BOE](https://www.boe.es/) (Boletin Oficial del Estado) usando herramientas MCP optimizadas para LLMs, una API REST compatible con ChatGPT Actions, o una CLI directa.
 
-**Web:** [normativa.dev](https://normativa.dev)
+**Web:** [innovaorigen.io](https://innovaorigen.io)
 
 ---
 
@@ -41,7 +41,7 @@ Anade a `.mcp.json` en la raiz de tu proyecto:
 }
 ```
 
-Reinicia Claude Code. Las 11 herramientas estaran disponibles automaticamente.
+Reinicia Claude Code. Las 13 herramientas estaran disponibles automaticamente.
 
 ### Para usar con ChatGPT / GPTs (API HTTP)
 
@@ -168,6 +168,8 @@ print(articulo["texto"])
 | 9 | `sumario_boe` | `GET /api/boe/sumario/{fecha}` | Sumario diario del BOE |
 | 10 | `sumario_borme` | `GET /api/borme/sumario/{fecha}` | Sumario diario del BORME |
 | 11 | `datos_auxiliares` | `GET /api/auxiliar/{tipo}` | Datos de referencia (materias, departamentos, rangos) |
+| 12 | `historial_versiones` | — (solo MCP) | Redacciones historicas de un articulo y texto de versiones anteriores |
+| 13 | `leer_norma_ue` | — (solo MCP) | Derecho de la UE publicado en el DOUE (AI Act, RGPD, DSA...) |
 
 ---
 
@@ -267,7 +269,7 @@ Los agentes se comunican via archivos en `handoff/`, pasando **referencias** (BO
 |  CAPA 3: Skills (10 packs .claude/skills/)              |
 |  Conocimiento de dominio lazy-loaded                    |
 +---------------------------------------------------------+
-|  CAPA 2: MCP Server (11 tools FastMCP)                  |
+|  CAPA 2: MCP Server (13 tools FastMCP)                  |
 |  Domain Registry + Cache SQLite + XML Parser            |
 +---------------------------------------------------------+
 |  CAPA 1: BOE API Client (httpx async)                   |
