@@ -28,8 +28,12 @@ jobs:
 
       - name: Publish to PyPI
         # Se omite mientras no exista el secreto PYPI_TOKEN
-        if: ${{ secrets.PYPI_TOKEN != '' }}
-        run: uv publish
+        run: |
+          if [ -z "$UV_PUBLISH_TOKEN" ]; then
+            echo "PYPI_TOKEN no configurado — se omite la publicacion a PyPI"
+            exit 0
+          fi
+          uv publish
         env:
           UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
 
